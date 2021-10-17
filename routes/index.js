@@ -48,7 +48,7 @@ router.get('/:id',async(req,res)=>{
   }
   catch(e){
 
-    console.log(error);
+    console.log(e);
     res.send({
       message:"Error in connection"
     })
@@ -60,16 +60,16 @@ router.get('/:id',async(req,res)=>{
 })
 
 
-router.post('/add-one-student',async(req,res)=>{
+router.post('/add-students',async(req,res)=>{
     const client = await MongoClient.connect(dbUrl);
 
     try{
       const db = client.db("studentManagement");
-      let data = await db.collection('students').insertOne(req.body);
+      let data = await db.collection('students').insertMany(req.body);
 
       res.send({
         message:"Success",
-        insertedData:data
+        details:data
       })
 
     }
@@ -86,16 +86,16 @@ router.post('/add-one-student',async(req,res)=>{
     }
 })
 
-router.post('/add-many-student',async(req,res)=>{
+router.put('/edit-student/:id',async(req,res)=>{
   const client = await MongoClient.connect(dbUrl);
 
   try{
     const db = client.db("studentManagement");
-    let data = await db.collection('students').insertMany(req.body);
+    let data = await db.collection('students').updateOne({_id:ObjectId(req.params.id)},{$set:{name:req.body.name,email:req.body.email,mobile:req.body.mobile,class:req.body.class}})
 
     res.send({
       message:"Success",
-      insertedData:data
+      details:data
     })
 
   }
@@ -112,6 +112,90 @@ router.post('/add-many-student',async(req,res)=>{
   }
 })
 
+router.delete('/delete-student/:id',async(req,res)=>{
+  const client = await MongoClient.connect(dbUrl);
+
+  try{
+    const db = client.db("studentManagement");
+    let data = await db.collection('students').deleteOne({_id:ObjectId(req.params.id)})
+
+    res.send({
+      message:"Success",
+      details:data
+    })
+
+  }
+  catch(e){
+
+    console.log(error);
+    res.send({
+      message:"Error in connection"
+    })
+
+  }
+  finally{
+    client.close();
+  }
+})
+
+
+router.delete('/delete-many',async(req,res)=>{
+  const client = await MongoClient.connect(dbUrl);
+
+  try{
+    const db = client.db("studentManagement");
+
+    let deleteArray = [];
+
+    req.body.map(e=>{
+      deleteArray.push(ObjectId(e.id))
+    })
+    let data = await db.collection('students').deleteMany({_id:{$in:deleteArray}});
+
+    res.send({
+      message:"Success"
+    })
+
+  }
+  catch(e){
+
+    console.log(error);
+    res.send({
+      message:"Error in connection"
+    })
+
+  }
+  finally{
+    client.close();
+  }
+})
+
+
+router.patch('/add-student-details/:id',async(req,res)=>{
+  const client = await MongoClient.connect(dbUrl);
+
+  try{
+    const db = client.db("studentManagement");
+    let data = await db.collection('students').updateOne({_id:ObjectId(req.params.id)},{$set:{address:req.body.address}})
+
+    res.send({
+      message:"Success",
+      details:data
+    })
+
+  }
+  catch(e){
+
+    console.log(error);
+    res.send({
+      message:"Error in connection"
+    })
+
+  }
+  finally{
+    client.close();
+  }
+})
 
 
 module.exports = router;
