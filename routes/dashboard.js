@@ -24,12 +24,21 @@ router.get('/all', async function(req,res){
 
 router.post('/', async(req,res)=>{
 
-  var data = new UserData(req.body)
-  data.save();
+  try {
+    var data = new UserData(req.body)
+  data.save((err)=>{
+    if(err)
+    {
+      //handle err
+    }
+  });
 
   res.send({
     message:'Inserted'
   })
+  } catch (error) {
+    res.send({error})
+  }
 })
 
 router.put('/:id',(req,res)=>{
