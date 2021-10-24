@@ -2,7 +2,7 @@ const { Router } = require('express');
 var express = require('express');
 var router = express.Router();
 const {dbUrl,mongodb,MongoClient} = require('../dbConfig');
-const {hashing,hashCompare,createJWT,authenticate} = require('../library/auth')
+const {hashing,hashCompare,createJWT,authenticate,role,adminRole} = require('../library/auth')
 
 /* GET users listing. */
 router.get('/', function(req, res, next) {
@@ -10,7 +10,7 @@ router.get('/', function(req, res, next) {
 });
 
 //register
-router.post('/register',async(req,res)=>{
+router.post('/register',role,async(req,res)=>{
   const client = await MongoClient.connect(dbUrl);
   try {
     const db = await client.db('studentManagement')
@@ -106,6 +106,51 @@ router.post('/forgot-password',async(req,res)=>{
 
 //login
 router.post('/login',async(req,res)=>{
+  const client = await MongoClient.connect(dbUrl);
+  try {
+    let db = await client.db('studentManagement');
+    let user = await db.collection('users').findOne({email:req.body.email})
+    if(user)
+    {
+        const compare = await hashCompare(req.body.password,user.password)
+        if(compare===true)
+        {
+          //token
+          const token = await createJWT(
+            {
+              userName:user.userName,
+              email:user.email1
+            }
+          )
+          res.json({
+            token:token,
+            message:"Login Successfull"
+          })
+        }
+        else{
+          res.json({
+            message:"Invalid email or password"
+          })
+        }
+    }
+    else
+    {
+      res.json({
+        message:"No user available"
+      })
+    }
+  } catch (error) {
+    
+  }
+  finally{
+    client.close();
+  }
+})
+
+
+//admin login
+
+router.post('/admin-login',adminRole,async(req,res)=>{
   const client = await MongoClient.connect(dbUrl);
   try {
     let db = await client.db('studentManagement');

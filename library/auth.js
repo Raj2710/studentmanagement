@@ -49,4 +49,27 @@ const authenticate = async(token)=>{
     else
         return false
 }
-module.exports={hashing,hashCompare,createJWT,authenticate}
+
+const role = async(req,res,next)=>{
+    switch(req.body.role){
+        case 1 : console.log( "admin")       
+                 break;
+        case 2 : console.log( "faculty")
+                 break;
+        case 3 : console.log( "student")
+                 break;
+        case 4 : console.log( "parents")
+                 break;
+    }
+    next();
+}
+
+const adminRole = async(req,res,next)=>{
+    if(req.body.role==1)
+        next();
+    else
+    {
+        res.send({message:"You are not an Admin"})
+    }
+}
+module.exports={hashing,hashCompare,createJWT,authenticate,role,adminRole}
